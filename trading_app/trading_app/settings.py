@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'drf_spectacular',
+    'django_crontab',
     'api_trades',
     'user',
 ]
@@ -165,3 +166,7 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     'COMPONENT_SPLIT_REQUEST': True,
 }
+
+CRONJOBS = [
+    ('0 0 * * *', 'django.core.management.call_command', ['place_bulk_order']),
+]
