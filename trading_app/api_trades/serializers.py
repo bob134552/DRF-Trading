@@ -1,11 +1,20 @@
+"""Serializers for api_trades app"""
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+
+
 from django.db.models import Sum
-from .models import Order, Stock
+
+from .models import Order
 
 class OrderSerializer(serializers.ModelSerializer):
+    """Serializer for Order model"""
+
     class Meta:
+        """ Meta for order serializer"""
         model = Order
         fields = [
+            'id',
             'order_type',
             'stock',
             'quantity',
@@ -21,14 +30,26 @@ class OrderSerializer(serializers.ModelSerializer):
 
         if order_type == 'sell':
             # Calculate the user's total holdings of the stock
-            total_buy_quantity = Order.objects.filter(user=user, stock=stock, order_type='buy').aggregate(total_quantity=Sum('quantity'))['total_quantity'] or 0
-            total_sell_quantity = Order.objects.filter(user=user, stock=stock, order_type='sell').aggregate(total_quantity=Sum('quantity'))['total_quantity'] or 0
+            total_buy_quantity = Order.objects.filter(
+                user=user,
+                stock=stock,
+                order_type='buy'
+            ).aggregate(total_quantity=Sum('quantity'))['total_quantity'] or 0
+            total_sell_quantity = Order.objects.filter(
+                user=user,
+                stock=stock,
+                order_type='sell'
+            ).aggregate(total_quantity=Sum('quantity'))['total_quantity'] or 0
 
             # Calculate net available quantity
             net_quantity = total_buy_quantity - total_sell_quantity
 
             if quantity > net_quantity:
-                raise ValidationError(f"You cannot sell more than your current holdings. Available quantity: {net_quantity}")
+                raise ValidationError(
+                    f"You cannot sell more than your current holdings. "
+                    f"Available quantity: {net_quantity}"
+                )
+
 
         # Create the order
         order = Order.objects.create(**validated_data)

@@ -1,17 +1,14 @@
-from django.http import Http404
+'''Views for api trades'''
 from django.shortcuts import get_object_or_404
 
-from rest_framework import generics, permissions, viewsets, mixins
+from rest_framework import generics, viewsets, mixins
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from .serializers import OrderSerializer, EmptySerializer, PortfolioSerializer
-from .models import Order, Stock
-
-from django.contrib.auth.models import User
+from api_trades.models import Order, Stock
+from api_trades.serializers import OrderSerializer, EmptySerializer, PortfolioSerializer
 
 
 class OrdersViewSet(
@@ -42,17 +39,22 @@ class TotalValueInvestedView(
     """
     authentication_classes =[TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    serializer_class = EmptySerializer
+    serializer_class = EmptySerializer # prevents throwing error in console.
 
-    def get(self, request, stock_id, *args, **kwargs):
+    def get(self, request, stock_id):
+        """
+        gets stocks overall invested value.
+        """
         stock = get_object_or_404(Stock, id=stock_id)
 
-        # Get all BUY orders
-        buy_orders = Order.objects.filter(user=request.user, stock=stock, order_type='buy')
+        # Get all buy orders
+        buy_orders = Order.objects.filter(
+            user=request.user, stock=stock, order_type='buy')
         total_buy_value = sum(order.quantity * stock.price for order in buy_orders)
 
-        # Get all SELL orders
-        sell_orders = Order.objects.filter(user=request.user, stock=stock, order_type='sell')
+        # Get all sell orders
+        sell_orders = Order.objects.filter(
+            user=request.user, stock=stock, order_type='sell')
         total_sell_value = sum(order.quantity * stock.price for order in sell_orders)
 
         # Calculate net total value invested
@@ -69,7 +71,10 @@ class PortfolioView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = PortfolioSerializer
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
+        """
+        Gets portfolio of user
+        """
         user = request.user
 
         # Retrieve all orders for the user
@@ -82,7 +87,6 @@ class PortfolioView(APIView):
         for order in orders:
             stock_id = order.stock.id
             stock_name = order.stock.name
-            stock_price = order.stock.price
             quantity = order.quantity
 
             if stock_id not in stock_summary:
@@ -120,7 +124,8 @@ class PortfolioView(APIView):
         ]
 
         if not portfolio_with_value:
-            return Response({'message': 'You currently have no stocks in your portfolio'}, status=200)
+            return Response({
+                'message': 'You currently have no stocks in your portfolio'}, status=200)
 
         # Serialize the data
         serializer = self.serializer_class(portfolio_with_value, many=True)

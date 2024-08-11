@@ -28,6 +28,7 @@ class PublicUserApiTests(TestCase):
     def test_create_user_success(self):
         """Test creating a user successfully"""
         payload = {
+            'username': 'testusername',
             'email': 'test@example.com',
             'password': 'testpass123',
             'first_name': 'Test',
@@ -43,6 +44,7 @@ class PublicUserApiTests(TestCase):
     def test_user_with_email_exists_error(self):
         """Test error returned if user with email exists"""
         payload = {
+            'username': 'testusername',
             'email': 'test@example.com',
             'password': 'testpass123',
             'first_name': 'Test',
@@ -56,6 +58,7 @@ class PublicUserApiTests(TestCase):
     def test_password_too_short_error(self):
         """Test an error is returned if password less than 5 chars"""
         payload = {
+            'username': 'testusername',
             'email': 'test@example.com',
             'password': 'pw',
             'first_name': 'Test',
@@ -73,6 +76,7 @@ class PublicUserApiTests(TestCase):
     def test_create_token_for_user(self):
         """Generates token for valid credentials"""
         user_details = {
+            'username': 'testusername',
             'first_name': 'Test',
             'last_name': 'Name',
             'email': 'test@example.com',
@@ -93,7 +97,7 @@ class PublicUserApiTests(TestCase):
 
     def test_create_token_bad_credentials(self):
         """Test returns error if credentials are invalid"""
-        create_user(email="test@example.com", password="goodpass")
+        create_user(username='testusername',email="test@example.com", password="goodpass")
 
         payload = {'email': 'test@example.com', 'password': 'badpass'}
         res = self.client.post(TOKEN_URL, payload)
@@ -129,6 +133,7 @@ class PrivateUserApiTests(TestCase):
 
     def setUp(self):
         self.user = create_user(
+            username='Testusername',
             email='test@example.com',
             password='testpass123',
             first_name='Test',

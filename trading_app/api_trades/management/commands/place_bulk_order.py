@@ -1,8 +1,9 @@
 import csv
+import os
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from api_trades.models import Stock, Order
-import os
+
 
 class Command(BaseCommand):
     help = 'Place bulk orders from a CSV file'
@@ -21,7 +22,7 @@ class Command(BaseCommand):
             return
 
         try:
-            with open(csv_file_path, newline='') as csvfile:
+            with open(csv_file_path, newline='', encoding='utf-8') as csvfile:
                 reader = csv.DictReader(csvfile)
                 for row in reader:
                     user_id = row['user_id']
@@ -34,7 +35,9 @@ class Command(BaseCommand):
                         stock = Stock.objects.get(id=stock_id)
 
                         if order_type == 'sell' and not self.can_sell(user, stock, quantity):
-                            self.stdout.write(self.style.ERROR(f'User {user_id} does not have enough stock to sell for stock ID {stock_id}'))
+                            self.stdout.write(
+                                self.style.ERROR(
+                                    f'User {user_id} does not have enough stock to sell for stock ID {stock_id}'))
                             continue
 
                         Order.objects.create(user=user, stock=stock, order_type=order_type, quantity=quantity)
@@ -52,7 +55,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(f'An error occurred: {str(e)}'))
 
     def can_sell(self, user, stock, quantity):
-        # Check if the user has enough stock to sell
+        ''' Check if the user has enough stock to sell '''
         buy_orders = Order.objects.filter(user=user, stock=stock, order_type='buy')
         total_buy_quantity = sum(order.quantity for order in buy_orders)
         return total_buy_quantity >= quantity
