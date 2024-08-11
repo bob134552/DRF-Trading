@@ -87,4 +87,5 @@ The endpoints available are as follows:
             POST: Generates an authentication token for the user, requiring an email and password. (Note: to authenticate and be able to use the API append Token to the start of the generated token i.e. "Token <generated token>")
 
 In addition while running the user can visit /api/docs to view an interactive page allowing a user to test each of the above endpoints.
+
 <img src="trading_app/example_images/swaggerUI.png">
