@@ -1,6 +1,8 @@
 '''Views for api trades'''
 from django.shortcuts import get_object_or_404
 
+from drf_spectacular.utils import extend_schema
+
 from rest_framework import generics, viewsets, mixins
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -22,10 +24,18 @@ class OrdersViewSet(
     authentication_classes =[TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="List all orders",
+        description="Retrieve a list of all orders placed by the authenticated user."
+    )
     def get_queryset(self):
         queryset = self.queryset
         return queryset.filter(user=self.request.user)
 
+    @extend_schema(
+        summary="Create a new order",
+        description="Place a new order for a stock by the authenticated user."
+    )
     def perform_create(self, serializer):
         # Adds the user to the create.
         serializer.save(user=self.request.user)
@@ -41,6 +51,12 @@ class TotalValueInvestedView(
     permission_classes = [IsAuthenticated]
     serializer_class = EmptySerializer # prevents throwing error in console.
 
+    @extend_schema(
+        summary="Get total value invested in a stock",
+        description="Retrieve the net total value invested by \
+            the authenticated user\
+            in a specific stock, considering buy and sell orders."
+    )
     def get(self, request, stock_id):
         """
         gets stocks overall invested value.
@@ -71,6 +87,11 @@ class PortfolioView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = PortfolioSerializer
 
+    @extend_schema(
+        summary="Get user's portfolio",
+        description="Retrieve the portfolio of the authenticated user,\
+            showing the total quantity and value of each stock they hold."
+    )
     def get(self, request):
         """
         Gets portfolio of user
