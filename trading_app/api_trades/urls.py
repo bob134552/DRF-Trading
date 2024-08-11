@@ -11,6 +11,7 @@ from api_trades import views
 
 router = DefaultRouter()
 router.register('', views.OrdersViewSet, basename='orders')
+router.register('stock', views.StockViewSet, basename='stock')
 
 urlpatterns = router.urls
 

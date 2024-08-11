@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 
 from django.db.models import Sum
 
-from .models import Order
+from .models import Order, Stock
 
 class OrderSerializer(serializers.ModelSerializer):
     """Serializer for Order model"""
@@ -54,6 +54,19 @@ class OrderSerializer(serializers.ModelSerializer):
         # Create the order
         order = Order.objects.create(**validated_data)
         return order
+
+
+class StockSerializer(serializers.ModelSerializer):
+    """Serializer for Stock model"""
+
+    class Meta:
+        model = Stock
+        fields = [
+            'id',
+            'name',
+            'price'
+        ]
+        read_only_fields = ['id']
 
 
 class PortfolioSerializer(serializers.Serializer):

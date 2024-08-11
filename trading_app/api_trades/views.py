@@ -1,18 +1,33 @@
 '''Views for api trades'''
 from django.shortcuts import get_object_or_404
 
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema_view, extend_schema
 
 from rest_framework import generics, viewsets, mixins
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 
 from api_trades.models import Order, Stock
-from api_trades.serializers import OrderSerializer, EmptySerializer, PortfolioSerializer
+from api_trades.serializers import (
+    OrderSerializer,
+    StockSerializer,
+    EmptySerializer,
+    PortfolioSerializer
+)
 
-
+@extend_schema_view(
+    list=extend_schema(
+        summary="List all orders",
+        description="Retrieve a list of all orders placed by the authenticated user."
+    ),
+    create=extend_schema(
+        summary="Create a new order",
+        description="Place a new order for a stock by the authenticated user."
+    ),
+)
 class OrdersViewSet(
     viewsets.GenericViewSet,
     mixins.CreateModelMixin,
@@ -24,22 +39,72 @@ class OrdersViewSet(
     authentication_classes =[TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(
-        summary="List all orders",
-        description="Retrieve a list of all orders placed by the authenticated user."
-    )
     def get_queryset(self):
         queryset = self.queryset
         return queryset.filter(user=self.request.user)
 
-    @extend_schema(
-        summary="Create a new order",
-        description="Place a new order for a stock by the authenticated user."
-    )
     def perform_create(self, serializer):
         # Adds the user to the create.
         serializer.save(user=self.request.user)
 
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="List all stocks",
+        description="Retrieve a list of all available stocks."
+    ),
+    retrieve=extend_schema(
+        summary="Retrieve a stock",
+        description="Retrieve details of a specific stock by its ID."
+    ),
+    create=extend_schema(
+        summary="Create a new stock",
+        description="Create a new stock with the provided data."
+    ),
+    update=extend_schema(
+        summary="Update an existing stock",
+        description="Update the details of an existing stock."
+    ),
+    partial_update=extend_schema(
+        summary="Partially update a stock",
+        description="Partially update the details of an existing stock."
+    ),
+    destroy=extend_schema(
+        summary="Delete a stock",
+        description="Delete an existing stock."
+    ),
+)
+class StockViewSet(viewsets.ModelViewSet):
+    '''viewset for the stock endpoints'''
+    serializer_class = StockSerializer
+    queryset = Stock.objects.all()
+    authentication_classes =[TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = self.queryset
+        return queryset
+
+    def perform_create(self, serializer):
+        """Handle the creation of a new Stock instance."""
+        if self.request.user.is_superuser:
+            serializer.save()
+        else:
+            raise PermissionDenied("Only superusers can create stocks.")
+
+    def perform_update(self, serializer):
+        """Handle the update of an existing Stock instance."""
+        if self.request.user.is_superuser:
+            serializer.save()
+        else:
+            raise PermissionDenied("Only superusers can update stocks.")
+
+    def perform_destroy(self, instance):
+        """Handle the deletion of a Stock instance."""
+        if self.request.user.is_superuser:
+            instance.delete()
+        else:
+            raise PermissionDenied("Only superusers can update stocks.")
 
 class TotalValueInvestedView(
     generics.GenericAPIView

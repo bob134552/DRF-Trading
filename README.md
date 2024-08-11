@@ -21,7 +21,7 @@
 5. Run the server
     ```bash
     python manage.py runserver
-6. Create Stock model instances by navigating to the admin page and clicking Stock and add new model to add example Stock models.
+6. Create Stock model instances by navigating to the admin page and clicking Stock to add example Stock instances. Alternatively, use the /api/trades/stock/ endpoint to create a new stock.
 
 7. Schedule cron job:
     ```bash
@@ -69,7 +69,14 @@ The endpoints available are as follows:
             GET: Retrieve the portfolio of the authenticated user, showing the total quantity and value of each stock they hold
         - /api/trades/total_value_invested/{stock_id}/ (GET)
             GET: Retrieve the net total value invested by the authenticated user in a specific stock, considering buy and sell orders.
-
+    - Stock
+        - /api/trades/stock/ (GET, POST)
+            GET: Retrieve a list of all available stocks.
+            POST: Create a new stock with the provided data.
+        - /api/trades/stock/{id}/ (GET, PUT, PATCH, DELETE)
+            GET: Retrieve details of a specific stock by its ID.
+            PUT, PATCH: Update(or partially update) the details of an existing stock.
+            DELETE: Delete an existing stock.
     - User
         - /api/user/create/ (POST)
             POST: Endpoint for registering a new user in the system. Requires user details like username, email, password, etc.
